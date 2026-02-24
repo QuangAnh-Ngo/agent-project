@@ -1,0 +1,27 @@
+# --- Môi trường ảo (Virtual Environments) ---
+venv/
+env/
+.env
+.venv/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# --- Cấu hình IDE / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Logs và Databases cục bộ ---
+*.log
+*.sqlite3
+
+# --- Thư mục chứa model AI hoặc dữ liệu test (Nên thêm nếu làm AI Agent) ---
+models/
+data/
+*.gguf
+*.bin
