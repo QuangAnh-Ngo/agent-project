@@ -1,0 +1,33 @@
+name: Build and Push Docker Image to Docker Hub
+
+# Tự động chạy khi có code push lên nhánh main
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Bước 1: Kéo mã nguồn từ GitHub về server chạy CI/CD
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Bước 2: Đăng nhập vào Docker Hub bằng thông tin trong Secrets
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Bước 3: Đọc Dockerfile trong thư mục backend, Build và Push lên Docker Hub
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          # Chỉ định đúng thư mục chứa Dockerfile của bạn
+          context: ./backend
+          push: true
+          # CHÚ Ý: Bạn cần thay đổi dòng này
+          tags: quanganhngo2107/agent_project-backend:latest

@@ -1,27 +1,22 @@
-version: '3.8'
-
 services:
   backend:
+    # Nhớ thay <tên_đăng_nhập> bằng username Docker Hub thực tế của bạn
+    image: quanganhngo2107/agent_project-backend:latest 
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: youtube_rag_backend
+    container_name: agent_backend
     ports:
       - "8080:8080"
     volumes:
-      # Gắn kết (bind mount) mã nguồn để hỗ trợ hot-reload
       - ./backend:/app
-      # Tránh việc bind mount đè lên các file thư viện đã cài trong container (nếu có)
       - /app/__pycache__
     environment:
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
-      # Sau này bạn có thể khai báo trực tiếp các biến tạm ở đây
       - ENV=development
-    # Khai báo file .env để Docker tự nạp vào container khi file này có nội dung
     env_file:
       - .env
-    # Lệnh chạy ghi đè CMD trong Dockerfile để bật chế độ --reload
     command: uvicorn main:app --host 0.0.0.0 --port 8080 --reload
 
-# Sau này khi thêm Database, bạn sẽ khai báo thêm service db ở dưới đây
+# Khi nào cần Database, bạn mới viết thêm khối db: ở dưới cùng và thêm depends_on vào backend
