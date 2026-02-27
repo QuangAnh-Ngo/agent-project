@@ -1,21 +1,18 @@
+"""
+Purpose: Serves as the main entry point for the FastAPI application.
+"""
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from app.api import search
+from app.api.search import router as search_router
+from app.vector_store.qdrant_db import client
 
-app = FastAPI(title="YouTube RAG Backend", version="1.0")
+# Initialize the FastAPI application instance with a title
+app = FastAPI(title="YouTube Semantic Search API")
 
-# Bật CORS cho Chrome Extension
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"], # Hoặc giới hạn ở "chrome-extension://<id_của_bạn>"
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Register the search router under the /api/v1 prefix
+app.include_router(search_router, prefix="/api/v1", tags=["Search"])
 
-# Đăng ký các API Endpoint
-app.include_router(search.router, prefix="/api")
-
+# Define a simple health check endpoint at the root path
 @app.get("/")
-def health_check():
-    return {"status": "Backend is running flawlessly!"}
+def read_root():
+    # Return a status message confirming the server is running
+    return {"status": "Backend is running smoothly with Qdrant!"}
