@@ -1,10 +1,10 @@
 name: Build and Push Docker Image to Docker Hub
 
-# Tự động chạy khi có code push lên nhánh main
+# Kích hoạt workflow khi push lên BẤT KỲ nhánh nào
 on:
   push:
     branches:
-      - main
+      - '**' # Dấu ** đại diện cho mọi nhánh (main, 2.Add_db, feature/abc, fix/xyz...)
 
 jobs:
   build-and-push:
@@ -15,6 +15,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Create .env file for Testing
+        run: |
+          echo "QDRANT_URL=${{ secrets.QDRANT_URL }}" >> .env
+          echo "QDRANT_API_KEY=${{ secrets.QDRANT_API_KEY }}" >> .env
+          echo "COLLECTION_NAME=web_contexts_ci" >> .env
+
+      - name: Test Build and Run with Docker Compose
+        run: |
+          docker compose up -d
+          # Tăng thời gian chờ một chút để Backend kịp kết nối Qdrant Cloud
+          sleep 15
+          
+          # LƯU Ý: Ping vào /docs thay vì / vì FastAPI mặc định không có route /
+          curl -f http://localhost:8080/docs || exit 1 
+          
+          docker compose down
+
       # Bước 2: Đăng nhập vào Docker Hub bằng thông tin trong Secrets
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -22,12 +39,13 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Bước 3: Đọc Dockerfile trong thư mục backend, Build và Push lên Docker Hub
+      # Bước 3: Đọc Dockerfile, Build và Push lên Docker Hub
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          # Chỉ định đúng thư mục chứa Dockerfile của bạn
           context: ./backend
           push: true
-          # CHÚ Ý: Bạn cần thay đổi dòng này
-          tags: quanganhngo2107/agent_project-backend:latest
+          # Tự động lấy tên nhánh làm tag. 
+          # Ví dụ: Push lên nhánh '2.Add_db' -> tag là ':2.Add_db'
+          # Push lên nhánh 'main' -> tag là ':main'
+          tags: quanganhngo2107/agent_project-backend:${{ github.ref_name }}
