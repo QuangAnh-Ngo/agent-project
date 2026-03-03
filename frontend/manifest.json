@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "YouTube RAG Search",
+  "name": "Web translate",
   "version": "1.0.0",
-  "description": "Tìm kiếm ngữ nghĩa và hỏi đáp với video YouTube.",
+  "description": "Tìm kiếm ngữ nghĩa.",
   "permissions": [
     "activeTab",
     "scripting",
