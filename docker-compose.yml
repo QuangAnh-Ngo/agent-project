@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   backend:
     # Nhớ thay <tên_đăng_nhập> bằng username Docker Hub thực tế của bạn
@@ -15,8 +17,18 @@ services:
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
       - ENV=development
+      - QDRANT_URL=http://qdrant:6333
     env_file:
       - .env
     command: uvicorn main:app --host 0.0.0.0 --port 8080 --reload
+    depends_on:
+      - qdrant
 
-# Khi nào cần Database, bạn mới viết thêm khối db: ở dưới cùng và thêm depends_on vào backend
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant_db
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - ./qdrant_data:/qdrant/storage
