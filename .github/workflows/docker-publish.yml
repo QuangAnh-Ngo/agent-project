@@ -15,12 +15,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # [TÙY CHỌN BỔ SUNG] Khởi chạy thử Docker Compose để đảm bảo backend và database kết nối tốt
+      - name: Create .env file for Testing
+        run: |
+          echo "QDRANT_URL=${{ secrets.QDRANT_URL }}" >> .env
+          echo "QDRANT_API_KEY=${{ secrets.QDRANT_API_KEY }}" >> .env
+          echo "COLLECTION_NAME=web_contexts_ci" >> .env
+
       - name: Test Build and Run with Docker Compose
         run: |
           docker-compose up -d
-          sleep 10 # Chờ các service khởi động
-          curl -f http://localhost:8080/ || exit 1 # Ping thử backend
+          # Tăng thời gian chờ một chút để Backend kịp kết nối Qdrant Cloud
+          sleep 15
+          
+          # LƯU Ý: Ping vào /docs thay vì / vì FastAPI mặc định không có route /
+          curl -f http://localhost:8080/docs || exit 1 
+          
           docker-compose down
 
       # Bước 2: Đăng nhập vào Docker Hub bằng thông tin trong Secrets
