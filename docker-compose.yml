@@ -2,7 +2,6 @@ version: '3.8'
 
 services:
   backend:
-    # Nhớ thay <tên_đăng_nhập> bằng username Docker Hub thực tế của bạn
     image: quanganhngo2107/agent_project-backend:latest 
     build:
       context: ./backend
@@ -13,22 +12,6 @@ services:
     volumes:
       - ./backend:/app
       - /app/__pycache__
-    environment:
-      - PYTHONUNBUFFERED=1
-      - PYTHONDONTWRITEBYTECODE=1
-      - ENV=development
-      - QDRANT_URL=http://qdrant:6333
     env_file:
-      - .env
+      - .env  # Dòng này giúp truyền file .env vào trong Docker
     command: uvicorn main:app --host 0.0.0.0 --port 8080 --reload
-    depends_on:
-      - qdrant
-
-  qdrant:
-    image: qdrant/qdrant:latest
-    container_name: qdrant_db
-    ports:
-      - "6333:6333"
-      - "6334:6334"
-    volumes:
-      - ./qdrant_data:/qdrant/storage

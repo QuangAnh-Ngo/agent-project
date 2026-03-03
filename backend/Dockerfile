@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY requirements.txt .
 # Cài đặt thư viện vào thư mục cục bộ của user
-RUN pip install --user --no-cache-dir -r requirements.txt
+RUN pip install --default-timeout=1000 --user --no-cache-dir -r requirements.txt
 
 # --- Stage 2: Final stage ---
 FROM python:3.11-slim
