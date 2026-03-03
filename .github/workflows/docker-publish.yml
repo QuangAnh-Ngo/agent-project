@@ -30,7 +30,7 @@ jobs:
           # LƯU Ý: Ping vào /docs thay vì / vì FastAPI mặc định không có route /
           curl -f http://localhost:8080/docs || exit 1 
           
-          docker-compose down
+          docker compose down
 
       # Bước 2: Đăng nhập vào Docker Hub bằng thông tin trong Secrets
       - name: Log in to Docker Hub
