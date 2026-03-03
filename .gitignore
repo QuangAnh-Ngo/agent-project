@@ -25,3 +25,6 @@ models/
 data/
 *.gguf
 *.bin
+
+qdrant_storage/
+qdrant_data/
