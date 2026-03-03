@@ -23,7 +23,7 @@ jobs:
 
       - name: Test Build and Run with Docker Compose
         run: |
-          docker-compose up -d
+          docker compose up -d
           # Tăng thời gian chờ một chút để Backend kịp kết nối Qdrant Cloud
           sleep 15
           
