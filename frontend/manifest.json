@@ -1,15 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "YouTube RAG Search",
+  "name": "RAG Context Translator",
   "version": "1.0.0",
-  "description": "Tìm kiếm ngữ nghĩa và hỏi đáp với video YouTube.",
+  "description": "Dịch thuật thông minh dựa trên ngữ cảnh toàn trang web.",
   "permissions": [
     "activeTab",
     "scripting",
     "storage"
   ],
   "host_permissions": [
-    "*://*.youtube.com/*"
+    "http://localhost:8080/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -18,14 +18,14 @@
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"],
-      "css": ["style.css"]
+      "css": ["style.css"],
+      "run_at": "document_idle"
     }
   ],
   "action": {
-    "default_popup": "popup.html",
-    "default_title": "Mở YouTube RAG Search",
-    "default_icon": "images.png"
+    "default_title": "RAG Translator"
   },
+  
   "icons": {
     "128": "images.png"
   }

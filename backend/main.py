@@ -16,3 +16,14 @@ app.include_router(translate_router, prefix="/api/v1", tags=["Translate"])
 def read_root():
     # Return a status message confirming the server is running
     return {"status": "Backend is running smoothly with Qdrant!"}
+
+from fastapi.middleware.cors import CORSMiddleware
+
+# Thêm middleware này để "mở cửa" cho Extension
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Cho phép mọi nguồn (trong đó có Extension)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
