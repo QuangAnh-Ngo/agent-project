@@ -39,13 +39,17 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Bước 3: Đọc Dockerfile, Build và Push lên Docker Hub
+      # Bước 3: Chuẩn hoá tên nhánh để dùng làm Docker tag (thay '/' và ký tự không hợp lệ bằng '-')
+      - name: Sanitize Docker tag
+        run: |
+          TAG=$(echo "${{ github.ref_name }}" | sed 's/[^a-zA-Z0-9._-]/-/g' | cut -c1-128)
+          echo "DOCKER_TAG=$TAG" >> "$GITHUB_ENV"
+
+      # Bước 4: Đọc Dockerfile, Build và Push lên Docker Hub
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: ./backend
           push: true
-          # Tự động lấy tên nhánh làm tag. 
-          # Ví dụ: Push lên nhánh '2.Add_db' -> tag là ':2.Add_db'
-          # Push lên nhánh 'main' -> tag là ':main'
-          tags: quanganhngo2107/agent_project-backend:${{ github.ref_name }}
+          # Sử dụng tag đã được chuẩn hoá (ví dụ: 'feature/foo' -> 'feature-foo')
+          tags: quanganhngo2107/agent_project-backend:${{ env.DOCKER_TAG }}
