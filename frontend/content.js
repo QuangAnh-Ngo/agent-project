@@ -1,3 +1,7 @@
-// file: content.js
-// Nơi tương tác trực tiếp với giao diện YouTube (lấy transcript, thao tác video player)
-console.log("[Content Script] Đã được tiêm thành công vào trang YouTube!");
+console.log("[Content Script] Đã được tiêm thành công vào trang!");
+
+document.addEventListener("mouseup", () => {
+  const selectedText = window.getSelection().toString().trim();
+  if (selectedText.length === 0) return;
+  console.log("[Content Script] Đoạn chữ được bôi đen:", selectedText);
+});
