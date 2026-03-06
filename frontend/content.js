@@ -84,3 +84,39 @@ document.addEventListener("mousedown", (event) => {
         destroyFloatingUI();
     }
 });
+
+window.addEventListener("load", () => {
+    const allParagraphs = document.querySelectorAll("p, h1, h2, h3, h4, h5, h6, span");
+    let cleanedText = "";
+
+    allParagraphs.forEach((element) => {
+        const text = element.innerText.trim();
+        if (text.length > 30) {
+            cleanedText += text + " ";
+        }
+    });
+
+    if (cleanedText.length > 100) {
+        sendDataToBackend(cleanedText);
+    }
+});
+
+async function sendDataToBackend(content) {
+    try {
+        const response = await fetch("http://localhost:8080/api/v1/ingest", {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json" 
+            },
+            body: JSON.stringify({
+                url: window.location.href,
+                content: content
+            })
+        });
+
+        const result = await response.json();
+        console.log("🚀 Đã nạp dữ liệu trang web:", result.message);
+    } catch (error) {
+        console.error("❌ Không thể nạp dữ liệu trang web:", error);
+    }
+}

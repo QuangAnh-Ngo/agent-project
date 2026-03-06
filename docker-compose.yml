@@ -13,20 +13,20 @@ services:
       - ./backend:/app
       - /app/__pycache__
     environment:
-      - QDRANT_URL=http://qdrant:6333
+      # - QDRANT_URL=http://qdrant:6333
       - PYTHONUNBUFFERED=1
     env_file:
       - .env
     command: uvicorn main:app --host 0.0.0.0 --port 8080 --reload
     # Đảm bảo Qdrant chạy trước khi Backend khởi động
-    depends_on:
-      - qdrant
+    # depends_on:
+    #   - qdrant
 
-  qdrant:
-    image: qdrant/qdrant:latest
-    container_name: qdrant_db
-    ports:
-      - "6333:6333"
-      - "6334:6334"
-    volumes:
-      - ./qdrant_data:/qdrant/storage # Giúp lưu trữ vector bền vững, không mất khi tắt máy
+  # qdrant:
+  #   image: qdrant/qdrant:latest
+  #   container_name: qdrant_db
+  #   ports:
+  #     - "6333:6333"
+  #     - "6334:6334"
+  #   volumes:
+  #     - ./qdrant_data:/qdrant/storage # Giúp lưu trữ vector bền vững, không mất khi tắt máy

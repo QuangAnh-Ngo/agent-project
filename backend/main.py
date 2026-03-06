@@ -17,13 +17,32 @@ def read_root():
     # Return a status message confirming the server is running
     return {"status": "Backend is running smoothly with Qdrant!"}
 
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
-# Thêm middleware này để "mở cửa" cho Extension
+app = FastAPI()
+
+# 1. Cấu hình CORS tiêu chuẩn
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Cho phép mọi nguồn (trong đó có Extension)
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    # Header quan trọng để sửa lỗi "loopback address space"
+    expose_headers=["Access-Control-Allow-Private-Network"],
 )
+
+# 2. Xử lý yêu cầu Preflight (OPTIONS) cho Private Network
+@app.middleware("http")
+async def add_private_network_access_header(request: Request, call_next):
+    if request.method == "OPTIONS":
+        response = Response()
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Private-Network"] = "true"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        return response
+    
+    response = await call_next(request)
+    return response
