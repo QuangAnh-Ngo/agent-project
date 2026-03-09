@@ -1,9 +1,12 @@
 """
 Purpose: Serves as the main entry point for the FastAPI application.
 """
-from fastapi import FastAPI
+from app.schemas.requests import IngestRequest
+from fastapi import FastAPI, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 from app.api.translate import router as translate_router
 from app.vector_store.qdrant_db import client
+from app.services.rag import process_and_store_document
 
 # Initialize the FastAPI application instance with a title
 app = FastAPI(title="Web Translate API")
@@ -16,11 +19,6 @@ app.include_router(translate_router, prefix="/api/v1", tags=["Translate"])
 def read_root():
     # Return a status message confirming the server is running
     return {"status": "Backend is running smoothly with Qdrant!"}
-
-from fastapi import FastAPI, Request, Response
-from fastapi.middleware.cors import CORSMiddleware
-
-app = FastAPI()
 
 # 1. Cấu hình CORS tiêu chuẩn
 app.add_middleware(
@@ -46,3 +44,9 @@ async def add_private_network_access_header(request: Request, call_next):
     
     response = await call_next(request)
     return response
+
+@app.post("/ingest")
+async def ingest_data(data: IngestRequest):
+    result = await process_and_store_document(data.url, data.content)
+    
+    return {"status": "success", "message": result}
