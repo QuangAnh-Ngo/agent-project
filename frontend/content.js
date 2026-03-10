@@ -28,13 +28,23 @@ function createFloatingUI(x, y, text) {
 }
 
 async function triggerTranslation(text) {
+    // 1. Hiện trạng thái Loading chuyên nghiệp
     ragContainer.innerHTML = `
         <div class="rag-result-box">
+            <div class="rag-header">
+                <span>Đang phân tích...</span>
+                <div class="rag-close" id="rag-close-btn">✖</div>
+            </div>
             <div class="rag-body">
-                <div class="rag-loading">⏳ Đang phân tích ngữ cảnh...</div>
+                <div class="rag-loading">
+                    <div class="spinner"></div>
+                    <span>Gemini đang đọc ngữ cảnh bài viết...</span>
+                </div>
             </div>
         </div>
     `;
+    
+    document.getElementById("rag-close-btn").onclick = destroyFloatingUI;
 
     try {
         const response = await fetch("http://localhost:8080/api/v1/translate", {
@@ -46,29 +56,48 @@ async function triggerTranslation(text) {
             })
         });
 
+        if (!response.ok) throw new Error("Backend Error");
         const data = await response.json();
 
+        // 2. Render kết quả kèm nút Copy (Đúng Task 3.3)
         ragContainer.innerHTML = `
             <div class="rag-result-box">
                 <div class="rag-header">
-                    <span>Bản dịch thông minh</span>
+                    <span>✨ Bản dịch thông minh (RAG)</span>
                     <div class="rag-close" id="rag-close-btn">✖</div>
                 </div>
                 <div class="rag-body">${data.translation}</div>
+                <div class="rag-footer">
+                    <button class="rag-copy-btn" id="rag-copy-btn">
+                        📋 Copy bản dịch
+                    </button>
+                </div>
             </div>
         `;
 
+        // Logic cho các nút bấm
         document.getElementById("rag-close-btn").onclick = destroyFloatingUI;
+        
+        const copyBtn = document.getElementById("rag-copy-btn");
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(data.translation);
+            copyBtn.innerHTML = "✅ Đã Copy!";
+            setTimeout(() => { copyBtn.innerHTML = "📋 Copy bản dịch"; }, 2000);
+        };
 
     } catch (error) {
         ragContainer.innerHTML = `
             <div class="rag-result-box">
+                <div class="rag-header">
+                    <span style="color: #d93025;">Lỗi hệ thống</span>
+                    <div class="rag-close" id="rag-close-btn">✖</div>
+                </div>
                 <div class="rag-body" style="color: #d93025;">
-                    Lỗi kết nối Backend. Hãy kiểm tra Docker!
+                    ⚠️ Không thể kết nối với AI. Hãy đảm bảo Docker đang chạy và bạn đã cấu hình GEMINI_API_KEY.
                 </div>
             </div>
         `;
-        setTimeout(destroyFloatingUI, 3000);
+        document.getElementById("rag-close-btn").onclick = destroyFloatingUI;
     }
 }
 

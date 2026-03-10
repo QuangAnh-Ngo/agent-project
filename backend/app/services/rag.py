@@ -5,18 +5,16 @@ from qdrant_client.models import PointStruct, Filter, FieldCondition, MatchValue
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
 
-# 1. Lấy thông tin Cloud từ file .env
 QDRANT_URL = os.getenv("QDRANT_URL")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
-COLLECTION_NAME = "web_contexts"
+COLLECTION_NAME = os.getenv("COLLECTION_NAME", "web_contexts_dev")
 
-# 2. Khởi tạo Model cũ (384 chiều) để khớp với Collection hiện tại
 embed_model = SentenceTransformer('all-MiniLM-L6-v2') 
-qdrant_client = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
+q_client = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
 
 async def process_and_store_document(url: str, content: str):
-    # Task 2.3: Kiểm tra Cache trên Cloud trước khi nạp
-    existing_points = qdrant_client.scroll(
+    # Kiểm tra Cache
+    existing_points, _ = q_client.scroll(
         collection_name=COLLECTION_NAME,
         scroll_filter=Filter(
             must=[FieldCondition(key="url", match=MatchValue(value=url))]
@@ -24,25 +22,48 @@ async def process_and_store_document(url: str, content: str):
         limit=1
     )
     
-    if existing_points[0]:
-        print(f"⏩ URL {url} đã có trên Cloud. Bỏ qua.")
+    if existing_points:
         return "Hit Cache"
 
-    # Task 2.2: Băm nhỏ văn bản (Chunking)
+    # Chunking
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=700, chunk_overlap=100)
     chunks = text_splitter.split_text(content)
-    print("Cut into", len(chunks), "chunk")
 
-    # Task 2.3: Embedding (384 dims) & Upsert lên Cloud
-    points = []
-    for chunk in chunks:
-        vector = embed_model.encode(chunk).tolist()
-        points.append(PointStruct(
+    # Embedding & Upsert
+    points = [
+        PointStruct(
             id=str(uuid.uuid4()),
-            vector=vector,
+            vector=embed_model.encode(chunk).tolist(),
             payload={"url": url, "text": chunk}
-        ))
+        ) for chunk in chunks
+    ]
 
-    qdrant_client.upsert(collection_name=COLLECTION_NAME, points=points)
-    print(f"✅ Đã đẩy thành công {len(chunks)} đoạn lên Qdrant Cloud.")
+    q_client.upsert(collection_name=COLLECTION_NAME, points=points)
+    print(f"✅ Đã nạp {len(chunks)} đoạn từ {url}")
     return "Success"
+
+# --- MỚI: Hàm lấy ngữ cảnh cho Sprint 3 ---
+async def retrieve_relevant_context(query_text: str, url: str):
+    query_vector = embed_model.encode(query_text).tolist()
+    
+    # Sử dụng Query API mới nhất
+    response = q_client.query_points(
+        collection_name=COLLECTION_NAME,
+        query=query_vector, # Trong query_points, tham số là 'query' thay vì 'query_vector'
+        query_filter=Filter(
+            must=[FieldCondition(key="url", match=MatchValue(value=url))]
+        ),
+        limit=3
+    )
+    
+    # query_points trả về đối tượng QueryResponse, kết quả nằm trong thuộc tính .points
+    search_results = response.points
+    
+    print(f"\n--- TOP 3 SEARCH RESULTS FOR: '{query_text}' ---")
+    for i, hit in enumerate(search_results):
+        print(f"Result {i+1} (Score: {hit.score:.4f}):")
+        print(f"{hit.payload['text']}\n")
+    print("--------------------------------------------------")
+
+    context = "\n\n".join([hit.payload["text"] for hit in search_results])
+    return context

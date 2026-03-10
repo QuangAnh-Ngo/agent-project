@@ -78,3 +78,53 @@
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* Thêm vào style.css hiện tại của bạn */
+
+.rag-footer {
+    padding: 8px 14px;
+    background: #f8f9fa;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.rag-copy-btn {
+    background: white;
+    border: 1px solid #dadce0;
+    color: #1a73e8;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.rag-copy-btn:hover {
+    background: #f1f3f4;
+    border-color: #1a73e8;
+}
+
+/* Hiệu ứng Spinner cho Loading */
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #1a73e8;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: rag-spin 0.8s linear infinite;
+}
+
+@keyframes rag-spin {
+    to { transform: rotate(360deg); }
+}
+
+.rag-loading {
+    color: #5f6368;
+    font-weight: 500;
+}

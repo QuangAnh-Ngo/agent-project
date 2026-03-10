@@ -45,8 +45,8 @@ async def add_private_network_access_header(request: Request, call_next):
     response = await call_next(request)
     return response
 
-@app.post("/ingest")
-async def ingest_data(data: IngestRequest):
-    result = await process_and_store_document(data.url, data.content)
-    
-    return {"status": "success", "message": result}
+# @app.post("/api/v1/ingest")
+# async def ingest_data(data: IngestRequest):
+#     print(f"DEBUG: Đang Nhận yêu cầu Ingest cho URL: {data.url}")
+#     result = await process_and_store_document(data.url, data.content)
+#     return {"status": "success", "message": result}
