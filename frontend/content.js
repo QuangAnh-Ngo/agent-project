@@ -28,7 +28,6 @@ function createFloatingUI(x, y, text) {
 }
 
 async function triggerTranslation(text) {
-    // 1. Hiện trạng thái Loading chuyên nghiệp
     ragContainer.innerHTML = `
         <div class="rag-result-box">
             <div class="rag-header">
@@ -46,59 +45,46 @@ async function triggerTranslation(text) {
     
     document.getElementById("rag-close-btn").onclick = destroyFloatingUI;
 
-    try {
-        const response = await fetch("http://localhost:8080/api/v1/translate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                url: window.location.href,
-                highlighted_text: text
-            })
-        });
-
-        if (!response.ok) throw new Error("Backend Error");
-        const data = await response.json();
-
-        // 2. Render kết quả kèm nút Copy (Đúng Task 3.3)
-        ragContainer.innerHTML = `
-            <div class="rag-result-box">
-                <div class="rag-header">
-                    <span>✨ Bản dịch thông minh (RAG)</span>
-                    <div class="rag-close" id="rag-close-btn">✖</div>
+    chrome.runtime.sendMessage({
+        type: "API_CALL",
+        url: "http://localhost:8080/api/v1/translate",
+        data: {
+            url: window.location.href,
+            highlighted_text: text
+        }
+    }, (response) => {
+        if (response && response.success) {
+            const data = response.data;
+            ragContainer.innerHTML = `
+                <div class="rag-result-box">
+                    <div class="rag-header">
+                        <span>✨ Bản dịch thông minh (RAG)</span>
+                        <div class="rag-close" id="rag-close-btn">✖</div>
+                    </div>
+                    <div class="rag-body">${data.translation}</div>
+                    <div class="rag-footer">
+                        <button class="rag-copy-btn" id="rag-copy-btn">📋 Copy bản dịch</button>
+                    </div>
                 </div>
-                <div class="rag-body">${data.translation}</div>
-                <div class="rag-footer">
-                    <button class="rag-copy-btn" id="rag-copy-btn">
-                        📋 Copy bản dịch
-                    </button>
+            `;
+            document.getElementById("rag-close-btn").onclick = destroyFloatingUI;
+            const copyBtn = document.getElementById("rag-copy-btn");
+            copyBtn.onclick = () => {
+                navigator.clipboard.writeText(data.translation);
+                copyBtn.innerHTML = "✅ Đã Copy!";
+                setTimeout(() => { copyBtn.innerHTML = "📋 Copy bản dịch"; }, 2000);
+            };
+        } else {
+            ragContainer.innerHTML = `
+                <div class="rag-result-box">
+                    <div class="rag-body" style="color: #d93025;">
+                        Lỗi kết nối qua Background. Hãy kiểm tra Backend!
+                    </div>
                 </div>
-            </div>
-        `;
-
-        // Logic cho các nút bấm
-        document.getElementById("rag-close-btn").onclick = destroyFloatingUI;
-        
-        const copyBtn = document.getElementById("rag-copy-btn");
-        copyBtn.onclick = () => {
-            navigator.clipboard.writeText(data.translation);
-            copyBtn.innerHTML = "✅ Đã Copy!";
-            setTimeout(() => { copyBtn.innerHTML = "📋 Copy bản dịch"; }, 2000);
-        };
-
-    } catch (error) {
-        ragContainer.innerHTML = `
-            <div class="rag-result-box">
-                <div class="rag-header">
-                    <span style="color: #d93025;">Lỗi hệ thống</span>
-                    <div class="rag-close" id="rag-close-btn">✖</div>
-                </div>
-                <div class="rag-body" style="color: #d93025;">
-                    ⚠️ Không thể kết nối với AI. Hãy đảm bảo Docker đang chạy và bạn đã cấu hình GEMINI_API_KEY.
-                </div>
-            </div>
-        `;
-        document.getElementById("rag-close-btn").onclick = destroyFloatingUI;
-    }
+            `;
+            setTimeout(destroyFloatingUI, 3000);
+        }
+    });
 }
 
 function destroyFloatingUI() {
@@ -131,21 +117,18 @@ window.addEventListener("load", () => {
 });
 
 async function sendDataToBackend(content) {
-    try {
-        const response = await fetch("http://localhost:8080/api/v1/ingest", {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json" 
-            },
-            body: JSON.stringify({
-                url: window.location.href,
-                content: content
-            })
-        });
-
-        const result = await response.json();
-        console.log("🚀 Đã nạp dữ liệu trang web:", result.message);
-    } catch (error) {
-        console.error("❌ Không thể nạp dữ liệu trang web:", error);
-    }
+    chrome.runtime.sendMessage({
+        type: "API_CALL",
+        url: "http://localhost:8080/api/v1/ingest",
+        data: {
+            url: window.location.href,
+            content: content
+        }
+    }, (response) => {
+        if (response && response.success) {
+            console.log("🚀 Đã nạp dữ liệu trang web:", response.data.message);
+        } else {
+            console.error("❌ Không thể nạp dữ liệu:", response ? response.error : "Unknown error");
+        }
+    });
 }
