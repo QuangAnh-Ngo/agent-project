@@ -24,7 +24,7 @@ jobs:
 
       - name: Test Build and Run with Docker Compose
         run: |
-          docker compose up -d
+          docker compose up -d --build
           
           # Đợi 15 giây cho app khởi động
           sleep 15
