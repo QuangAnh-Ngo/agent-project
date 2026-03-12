@@ -25,11 +25,15 @@ jobs:
       - name: Test Build and Run with Docker Compose
         run: |
           docker compose up -d
-          # Tăng thời gian chờ một chút để Backend kịp kết nối Qdrant Cloud
+          
+          # Đợi 15 giây cho app khởi động
           sleep 15
           
-          # LƯU Ý: Ping vào /docs thay vì / vì FastAPI mặc định không có route /
-          curl -f http://localhost:8080/docs || exit 1 
+          # 🚨 IN TOÀN BỘ LOG CỦA PYTHON RA MÀN HÌNH ĐỂ TÌM LỖI 🚨
+          docker compose logs backend
+          
+          # Chạy lệnh curl
+          curl -f http://localhost:8080/docs || (echo "=== LỖI RỒI, HÃY ĐỌC LOG PHÍA TRÊN ===" && exit 1)
           
           docker compose down
 
