@@ -20,6 +20,7 @@ jobs:
           echo "QDRANT_URL=${{ secrets.QDRANT_URL }}" >> .env
           echo "QDRANT_API_KEY=${{ secrets.QDRANT_API_KEY }}" >> .env
           echo "COLLECTION_NAME=web_contexts_ci" >> .env
+          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
 
       - name: Test Build and Run with Docker Compose
         run: |
