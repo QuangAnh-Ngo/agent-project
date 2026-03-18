@@ -7,20 +7,23 @@ model = genai.GenerativeModel('gemini-2.5-flash')
 
 async def get_gemini_translation(text: str, context: str):
     prompt = f"""
-    Role: Expert Technical Translator.
-    Task: Translate the following English text into natural Vietnamese.
-    
-    Text to translate: "{text}"
-    
-    Context from the article: 
+    Role: Expert Technical Translator specializing in Computer Science and Software Development.
+    Task: Translate the provided English text into natural, professional Vietnamese.
+
+    INPUT DATA:
+    - Text to translate: "{text}"
+    - Reference Context (from RAG): 
     ---
     {context}
     ---
-    
-    Requirements:
-    1. Use appropriate technical terminology based on the context.
-    2. Ensure the translation is natural and professional.
-    3. Return ONLY the translated text, no explanations.
+
+    STRICT REQUIREMENTS FOR SPRINT 4.2:
+    1. FORMATTING: You MUST preserve the EXACT paragraph structure, line breaks, and any list formatting (bullets/numbers) of the original text.
+    2. TERMINOLOGY: Use the provided "Reference Context" to ensure technical terms are translated accurately according to the article's theme.
+    3. TONE: The Vietnamese output should be natural, fluid, and suitable for a technical audience (avoiding overly literal or clunky translations).
+    4. OUTPUT: Return ONLY the raw translated text. No introductions, no markdown code blocks (```), and no post-translation explanations.
+
+    Translation:
     """
     
     response = model.generate_content(prompt)

@@ -9,7 +9,8 @@ QDRANT_URL = os.getenv("QDRANT_URL")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 COLLECTION_NAME = os.getenv("COLLECTION_NAME", "web_contexts_dev")
 
-embed_model = SentenceTransformer('all-MiniLM-L6-v2') 
+# embed_model = SentenceTransformer('all-MiniLM-L6-v2') 
+embed_model = SentenceTransformer('BAAI/bge-base-en-v1.5')
 q_client = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
 
 async def process_and_store_document(url: str, content: str):
@@ -44,7 +45,8 @@ async def process_and_store_document(url: str, content: str):
 
 # --- MỚI: Hàm lấy ngữ cảnh cho Sprint 3 ---
 async def retrieve_relevant_context(query_text: str, url: str):
-    query_vector = embed_model.encode(query_text).tolist()
+    instruction = "Represent this sentence for searching relevant passages: "
+    query_vector = embed_model.encode(instruction + query_text).tolist()
     
     # Sử dụng Query API mới nhất
     response = q_client.query_points(

@@ -6,7 +6,7 @@ QDRANT_URL = os.getenv("QDRANT_URL")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 COLLECTION_NAME = os.getenv("COLLECTION_NAME", "web_contexts_dev")
 
-VECTOR_SIZE = 384 
+VECTOR_SIZE = 768
 
 def init_qdrant() -> QdrantClient:
     try:
