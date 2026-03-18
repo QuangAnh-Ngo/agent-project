@@ -9,7 +9,7 @@
     "storage"
   ],
   "host_permissions": [
-    "http://localhost:8080/*"
+    "https://agentproject-backend-production.up.railway.app/*"
   ],
   "background": {
     "service_worker": "background.js"

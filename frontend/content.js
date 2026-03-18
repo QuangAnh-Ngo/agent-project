@@ -47,7 +47,7 @@ async function triggerTranslation(text) {
 
     chrome.runtime.sendMessage({
         type: "API_CALL",
-        url: "http://localhost:8080/api/v1/translate",
+        url: "https://agentproject-backend-production.up.railway.app/api/v1/translate",
         data: {
             url: window.location.href,
             highlighted_text: text
@@ -119,7 +119,7 @@ window.addEventListener("load", () => {
 async function sendDataToBackend(content) {
     chrome.runtime.sendMessage({
         type: "API_CALL",
-        url: "http://localhost:8080/api/v1/ingest",
+        url: "https://agentproject-backend-production.up.railway.app/api/v1/ingest",
         data: {
             url: window.location.href,
             content: content
