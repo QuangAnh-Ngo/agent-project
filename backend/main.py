@@ -4,15 +4,15 @@ Purpose: Serves as the main entry point for the FastAPI application.
 from app.schemas.requests import IngestRequest
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.translate import router as translate_router
+from app.api.tools import router as tool_router
 from app.vector_store.qdrant_db import client
 from app.services.rag import process_and_store_document
 
 # Initialize the FastAPI application instance with a title
 app = FastAPI(title="Web Translate API")
 
-# Register the translate router under the /api/v1 prefix
-app.include_router(translate_router, prefix="/api/v1", tags=["Translate"])
+# Register the tool router under the /api/v1 prefix
+app.include_router(tool_router, prefix="/api/v1", tags=["Translate"])
 
 # Define a simple health check endpoint at the root path
 @app.get("/")

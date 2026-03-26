@@ -1,30 +1,62 @@
 import os
-import google.generativeai as genai
+from functools import lru_cache
+from dotenv import load_dotenv
+from openai import AsyncOpenAI
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-2.5-flash')
+load_dotenv()
 
-async def get_gemini_translation(text: str, context: str):
-    prompt = f"""
-    Role: Expert Technical Translator specializing in Computer Science and Software Development.
-    Task: Translate the provided English text into natural, professional Vietnamese.
+# Hàm kiểm tra biến môi trường (Giúp bạn biết ngay nếu quên config .env)
+def _require_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise RuntimeError(f"⚠️ Thiếu biến môi trường: {name}")
+    return value
 
-    INPUT DATA:
-    - Text to translate: "{text}"
-    - Reference Context (from RAG): 
-    ---
-    {context}
-    ---
+# Tạo Client dùng chung (Singleton) để tiết kiệm tài nguyên
+@lru_cache(maxsize=1)
+def _get_llm_client() -> AsyncOpenAI:
+    return AsyncOpenAI(
+        api_key=_require_env("LLM_API_KEY"),
+        base_url=_require_env("LLM_BASE_URL"),
+    )
 
-    STRICT REQUIREMENTS FOR SPRINT 4.2:
-    1. FORMATTING: You MUST preserve the EXACT paragraph structure, line breaks, and any list formatting (bullets/numbers) of the original text.
-    2. TERMINOLOGY: Use the provided "Reference Context" to ensure technical terms are translated accurately according to the article's theme.
-    3. TONE: The Vietnamese output should be natural, fluid, and suitable for a technical audience (avoiding overly literal or clunky translations).
-    4. OUTPUT: Return ONLY the raw translated text. No introductions, no markdown code blocks (```), and no post-translation explanations.
+def _get_model_name() -> str:
+    return _require_env("LLM_MODEL")
 
-    Translation:
-    """
-    
-    response = model.generate_content(prompt)
-    return response.text.strip()
+# HÀM CHÍNH: Xử lý cả Dịch và Hỏi (Sprint 4.6)
+async def get_ai_response(text: str, context: str, question: str = None, task: str = "translate") -> str:
+    if task == "translate":
+        system_msg = "You are an expert technical translator from English to Vietnamese."
+        prompt = f"""
+        Task: Translate the following English text into professional Vietnamese.
+        Constraints:
+        1. Preserve EXACT paragraph structure and line breaks.
+        2. Use the provided context for technical accuracy.
+        3. Return ONLY the translated text.
+
+        Context: {context}
+        Text: "{text}"
+        """
+    else:
+        system_msg = "You are a helpful AI Assistant analyzing webpage content."
+        prompt = f"""
+        Task: Answer the user's question about the highlighted text based on the provided webpage context.
+        
+        Highlighted Text: "{text}"
+        User Question: "{question}"
+        Web Context: {context}
+
+        Requirements: Answer in Vietnamese, be concise and technical.
+        """
+
+    # Đây là nơi lỗi UndefinedVariable biến mất vì hàm đã được định nghĩa ở trên
+    response = await _get_llm_client().chat.completions.create(
+        model=_get_model_name(),
+        messages=[
+            {"role": "system", "content": system_msg},
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0.2,
+    )
+
+    return response.choices[0].message.content.strip()

@@ -7,3 +7,7 @@ from pydantic import BaseModel
 class TranslateResponse(BaseModel):
     status: str
     translation: str
+
+class AskResponse(BaseModel):
+    status: str
+    answer: str # Nội dung câu trả lời thay vì bản dịch

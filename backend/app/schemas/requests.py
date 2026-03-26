@@ -12,3 +12,12 @@ class IngestRequest(BaseModel):
 class TranslateRequest(BaseModel):
     url: str
     highlighted_text: str
+
+class AskRequest(BaseModel):
+    url: str
+    highlighted_text: str
+    user_question: str # Câu hỏi cụ thể của Thai
+
+class AskResponse(BaseModel):
+    status: str
+    answer: str # Nội dung câu trả lời thay vì bản dịch
