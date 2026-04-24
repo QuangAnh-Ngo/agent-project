@@ -57,6 +57,13 @@ async def get_ai_response(text: str, context: str, question: str = None, task: s
             {"role": "user", "content": prompt},
         ],
         temperature=0.2,
+        stream=True,
     )
 
-    return response.choices[0].message.content.strip()
+    async for chunk in response:
+        # Lấy nội dung chữ trong chunk
+        content = chunk.choices[0].delta.content
+        if content:
+            yield content # Gửi từng chữ về cho Router
+    
+    # return response.choices[0].message.content.strip()

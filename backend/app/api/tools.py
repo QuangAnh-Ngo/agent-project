@@ -10,12 +10,13 @@ tool_router = APIRouter()
 async def translate(request: TranslateRequest):
     try:
         context = await retrieve_relevant_context(request.highlighted_text, request.url)
-        translation = await get_ai_response(request.highlighted_text, context, task="translate")
-        
-        return TranslateResponse(
-            status="success",
-            translation=translation
+        gen = get_ai_response(
+            text=request.highlighted_text, 
+            context=context, 
+            task="translate"
         )
+        return StreamingResponse(gen, media_type="text/plain")
+    
     except Exception as e:
         print(f"❌ Lỗi dịch thuật: {e}")
         raise HTTPException(status_code=500, detail="Không thể thực hiện dịch thuật RAG")
@@ -24,12 +25,13 @@ async def translate(request: TranslateRequest):
 async def ask_ai(request: AskRequest):
     try:
         context = await retrieve_relevant_context(request.highlighted_text, request.url)
-        answer = await get_ai_response(
-            request.highlighted_text, 
-            context, 
+        gen = get_ai_response(
+            text=request.highlighted_text, 
+            context=context, 
             question=request.user_question, 
             task="ask"
         )
-        return AskResponse(status="success", answer=answer)
+        return StreamingResponse(gen, media_type="text/plain")
+    
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

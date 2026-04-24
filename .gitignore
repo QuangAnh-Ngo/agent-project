@@ -28,3 +28,5 @@ data/
 
 qdrant_storage/
 qdrant_data/
+# --- Claude Code worktrees & local config ---
+.claude/

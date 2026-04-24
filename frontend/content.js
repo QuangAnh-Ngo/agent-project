@@ -1,16 +1,14 @@
 let ragContainer = null;
 let isDragging = false;
 let startX, startY, initialX, initialY;
-let isPageAuthorized = false; // "Người gác cổng": Mặc định là chưa được phép
+let isPageAuthorized = false;
 
 // ==========================================
-// 1. CHUẨN SE: LOGIC KIỂM TRA & NẠP DỮ LIỆU (TASK 4.5)
+// 1. LOGIC KIỂM TRA & NẠP DỮ LIỆU (GIỮ NGUYÊN)
 // ==========================================
 
 window.addEventListener("load", async () => {
     const currentUrl = window.location.href;
-
-    // Bước 1: Kiểm tra trạng thái nạp từ Backend
     chrome.runtime.sendMessage({
         type: "API_CALL",
         method: "GET",
@@ -18,24 +16,22 @@ window.addEventListener("load", async () => {
     }, (response) => {
         if (response && response.success) {
             if (response.data.exists) {
-                // Bước 2: Nếu đã nạp, kiểm tra xem Thai có đang "Tắt" nó không
                 chrome.storage.local.get([currentUrl], (result) => {
                     if (result[currentUrl] === "OFF") {
-                        isPageAuthorized = false; // Chặn bôi đen
-                        createGhostDock();        // Hiện Mini-Popup hồi sinh
+                        isPageAuthorized = false;
+                        createGhostDock();
                     } else {
-                        isPageAuthorized = true;  // Cho phép bôi đen bình thường
+                        isPageAuthorized = true;
                     }
                 });
             } else {
-                showIngestInvitation(); // Trang mới hoàn toàn -> Mời nạp
+                showIngestInvitation();
             }
         }
     });
 });
 
 function showIngestInvitation() {
-    // Tạo Toast thông báo ở góc màn hình
     const toast = document.createElement("div");
     toast.id = "rag-ingest-toast";
     toast.innerHTML = `
@@ -49,14 +45,11 @@ function showIngestInvitation() {
         </div>
     `;
     document.body.appendChild(toast);
-
     document.getElementById("rag-ingest-ignore").onclick = () => toast.remove();
-
     document.getElementById("rag-ingest-confirm").onclick = () => {
         const confirmBtn = document.getElementById("rag-ingest-confirm");
         confirmBtn.innerText = "⏳ Đang đọc...";
         confirmBtn.disabled = true;
-
         const content = extractPageContent();
         if (content) {
             chrome.runtime.sendMessage({
@@ -65,7 +58,7 @@ function showIngestInvitation() {
                 data: { url: window.location.href, content: content }
             }, (res) => {
                 if (res && res.success) {
-                    isPageAuthorized = true; // QUAN TRỌNG: Kích hoạt quyền sau khi nạp xong
+                    isPageAuthorized = true;
                     toast.innerHTML = `<div class="rag-toast-header">✅ Đã xong! Mình đã sẵn sàng hỗ trợ.</div>`;
                     setTimeout(() => toast.remove(), 2000);
                 }
@@ -86,7 +79,7 @@ function extractPageContent() {
 }
 
 // ==========================================
-// 2. CHUẨN SE: ACTION BAR & KÉO THẢ (TASK 4.6)
+// 2. UI ACTION BAR & KÉO THẢ (GIỮ NGUYÊN)
 // ==========================================
 
 function initDraggable(handle, element) {
@@ -95,13 +88,11 @@ function initDraggable(handle, element) {
         isDragging = true;
         startX = e.clientX; startY = e.clientY;
         initialX = element.offsetLeft; initialY = element.offsetTop;
-        
         document.onmousemove = (e) => {
             if (!isDragging) return;
             element.style.left = `${initialX + (e.clientX - startX)}px`;
             element.style.top = `${initialY + (e.clientY - startY)}px`;
         };
-        
         document.onmouseup = () => { isDragging = false; document.onmousemove = null; };
     };
 }
@@ -121,8 +112,6 @@ function createActionBar(x, y, text) {
     ragContainer.id = "rag-translator-wrapper";
     ragContainer.style.top = `${y + 12}px`;
     ragContainer.style.left = `${x + 10}px`;
-
-    // CẬP NHẬT: Thêm nút "🔌 Tắt" vào giữa Hỏi AI và nút Đóng mini
     ragContainer.innerHTML = `
         <div class="rag-action-bar" id="rag-bar-handle">
             <button class="rag-tool-btn" id="rag-btn-translate">🌐 Dịch AI</button>
@@ -134,31 +123,17 @@ function createActionBar(x, y, text) {
         </div>
     `;
     document.body.appendChild(ragContainer);
-
-    // Kích hoạt kéo thả (Giữ nguyên logic cũ)
     initDraggable(document.getElementById("rag-bar-handle"), ragContainer);
-
-    // Gán sự kiện (Chỉ gán sự kiện click, logic xử lý tính sau)
     document.getElementById("rag-btn-translate").onclick = () => triggerAction(text, "translate");
     document.getElementById("rag-btn-ask").onclick = () => expandAskUI(text);
-    
-    // --- SỰ KIỆN MỚI CHO NÚT TẮT ---
     document.getElementById("rag-btn-turn-off").onclick = () => {
-    const currentUrl = window.location.href;
-
-    // 1. Ghi nhớ trạng thái TẮT vào bộ nhớ trình duyệt
-    chrome.storage.local.set({ [currentUrl]: "OFF" }, () => {
-        console.log("🤫 Đã chuyển AI sang chế độ ẩn thân.");
-        
-        // 2. Cập nhật biến quyền và xóa UI hiện tại
-        isPageAuthorized = false;
-        destroyFloatingUI();
-        
-        // 3. Hiện Mini-Popup để Thai có đường "hồi sinh" AI
-        createGhostDock();
-    });
-};
-    
+        const currentUrl = window.location.href;
+        chrome.storage.local.set({ [currentUrl]: "OFF" }, () => {
+            isPageAuthorized = false;
+            destroyFloatingUI();
+            createGhostDock();
+        });
+    };
     document.getElementById("rag-mini-close").onclick = destroyFloatingUI;
 }
 
@@ -176,7 +151,6 @@ function expandAskUI(text) {
     const input = document.getElementById("rag-ask-field");
     input.focus();
     document.getElementById("rag-ask-cancel").onclick = () => createActionBar(ragContainer.offsetLeft, ragContainer.offsetTop - 12, text);
-
     const handleSend = () => {
         const q = input.value.trim();
         if (q) triggerAction(text, "ask", q);
@@ -185,49 +159,86 @@ function expandAskUI(text) {
     document.getElementById("rag-send-ask").onclick = handleSend;
 }
 
+// ==========================================
+// 3. TASK 4.7: HÀM GỌI API STREAMING (UPDATE QUAN TRỌNG)
+// ==========================================
+
 async function triggerAction(text, type, question = "") {
+    // 1. Tạo giao diện Box kết quả rỗng
     ragContainer.innerHTML = `
         <div class="rag-result-box">
             <div class="rag-header" id="rag-result-handle">
-                <span>${type === "translate" ? "✨ DỊCH AI (RAG)" : "🤖 TRẢ LỜI (RAG)"}</span>
+                <span>${type === "translate" ? "✨ AI ĐANG DỊCH..." : "🤖 AI ĐANG TRẢ LỜI..."}</span>
                 <div class="rag-close" id="rag-close-btn">✕</div>
             </div>
-            <div class="rag-body">
-                <div class="rag-loading">
-                    <div class="spinner"></div>
-                    <span>Gemini đang xử lý...</span>
-                </div>
+            <div class="rag-body" id="rag-stream-body">
+                <div class="rag-loading-stream">⏳ Đang kết nối...</div>
             </div>
         </div>
     `;
+    
+    const bodyDisplay = document.getElementById("rag-stream-body");
     initDraggable(document.getElementById("rag-result-handle"), ragContainer);
     document.getElementById("rag-close-btn").onclick = destroyFloatingUI;
 
-    chrome.runtime.sendMessage({
-        type: "API_CALL",
-        url: `http://localhost:8080/api/v1/${type}`,
-        data: { url: window.location.href, highlighted_text: text, user_question: question }
-    }, (response) => {
-        if (response && response.success) {
-            const data = response.data;
-            const content = data.answer || data.translation;
-            ragContainer.querySelector(".rag-body").innerText = content;
-            
-            const footer = document.createElement("div");
-            footer.className = "rag-footer";
-            footer.innerHTML = `<button class="rag-copy-btn" id="rag-copy-btn">📋 Copy kết quả</button>`;
-            ragContainer.querySelector(".rag-result-box").appendChild(footer);
+    // 2. Mở đường ống dẫn (Port) tới background.js
+    const port = chrome.runtime.connect({ name: "AI_STREAM_PORT" });
 
-            document.getElementById("rag-copy-btn").onclick = function() {
-                navigator.clipboard.writeText(content);
-                this.innerHTML = "✅ Đã Copy!";
-                setTimeout(() => { this.innerHTML = "📋 Copy kết quả"; }, 2000);
-            };
-        } else {
-            showError("Lỗi kết nối AI. Kiểm tra Backend!");
+    // 3. Gửi yêu cầu bắt đầu Stream qua đường ống
+    port.postMessage({
+        url: `http://localhost:8080/api/v1/${type}`,
+        data: { 
+            url: window.location.href, 
+            highlighted_text: text, 
+            user_question: question 
+        }
+    });
+
+    let fullContent = ""; // Biến lưu toàn bộ nội dung để phục vụ nút Copy
+
+    // 4. Lắng nghe từng mẩu chữ đổ về từ Background
+    port.onMessage.addListener((msg) => {
+        if (msg.type === "CHUNK") {
+            // Xóa dòng "Đang kết nối" ở mảnh chữ đầu tiên
+            if (fullContent === "") bodyDisplay.innerText = "";
+            
+            fullContent += msg.content;
+            bodyDisplay.innerText = fullContent; // Nhảy chữ lên màn hình
+            
+            // Tự động cuộn xuống dưới cùng khi chữ dài ra
+            bodyDisplay.scrollTop = bodyDisplay.scrollHeight;
+            
+        } else if (msg.type === "DONE") {
+            // Đổi Header khi xong
+            ragContainer.querySelector(".rag-header span").innerText = 
+                type === "translate" ? "✅ BẢN DỊCH HOÀN TẤT" : "✅ TRẢ LỜI XONG";
+            
+            // Thêm nút Copy vào cuối
+            addCopyButton(fullContent);
+            
+        } else if (msg.type === "ERROR") {
+            showError(`Lỗi: ${msg.message}`);
         }
     });
 }
+
+// Hàm phụ để thêm nút copy sau khi stream xong
+function addCopyButton(content) {
+    const footer = document.createElement("div");
+    footer.className = "rag-footer";
+    footer.innerHTML = `<button class="rag-copy-btn" id="rag-copy-btn">📋 Copy kết quả</button>`;
+    ragContainer.querySelector(".rag-result-box").appendChild(footer);
+
+    document.getElementById("rag-copy-btn").onclick = function() {
+        navigator.clipboard.writeText(content);
+        this.innerHTML = "✅ Đã Copy!";
+        setTimeout(() => { this.innerHTML = "📋 Copy kết quả"; }, 2000);
+    };
+}
+
+// ==========================================
+// 4. UTILS & UI HỒI SINH (GIỮ NGUYÊN)
+// ==========================================
 
 function destroyFloatingUI() {
     if (ragContainer) { ragContainer.remove(); ragContainer = null; }
@@ -244,13 +255,10 @@ document.addEventListener("mousedown", (event) => {
 });
 
 function createGhostDock() {
-    // Xóa cái cũ nếu có
     const existingDock = document.getElementById("rag-ghost-dock");
     if (existingDock) existingDock.remove();
-
     const dock = document.createElement("div");
     dock.id = "rag-ghost-dock";
-    // Thiết kế dạng thanh mỏng, bo góc nhẹ (Pill style)
     dock.innerHTML = `
         <div class="rag-ghost-content">
             <span class="rag-ghost-icon">📄</span>
@@ -259,22 +267,13 @@ function createGhostDock() {
         </div>
     `;
     document.body.appendChild(dock);
-
-    // Gán sự kiện cho nút Hồi sinh
     document.getElementById("rag-ghost-reactivate").onclick = () => {
         const currentUrl = window.location.href;
-
-        // 1. Xóa trạng thái OFF trong bộ nhớ
         chrome.storage.local.remove([currentUrl], () => {
-            console.log("⚡ AI đã được kích hoạt trở lại!");
-            
-            // 2. Cấp lại quyền bôi đen và xóa Mini-Popup
             isPageAuthorized = true;
             const dock = document.getElementById("rag-ghost-dock");
             if (dock) dock.remove();
-            
-            // Hiện một thông báo nhỏ (Optional)
-            showError("AI đã sẵn sàng! Thử bôi đen nhé."); 
+            console.log("⚡ AI đã được kích hoạt trở lại!");
         });
     };
 }
