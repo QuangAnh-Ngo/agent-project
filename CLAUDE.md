@@ -221,3 +221,18 @@ curl http://localhost:8080/docs       # FastAPI Swagger UI
 - `backend/app/ai/` rỗng → có thể xóa hoặc dùng cho tương lai
 - Không có `.env.example` → khó onboard người mới
 - Hardcoded `localhost:8080` trong `content.js` và `manifest.json` host_permissions → khó deploy production
+
+---
+
+## 11. Quy tắc làm việc cho Claude (user instructions)
+
+Các quy tắc bắt buộc tuân thủ khi Claude làm việc trong repo này:
+
+### 11.1 Không tự ý tạo PR vào `main`
+- **KHÔNG** tạo Pull Request trực tiếp từ branch Claude vào `main`.
+- Khi hoàn thành task và cần push lên GitHub:
+  - **Chỉ push lên branch của Claude** (ví dụ: `claude/workspace`, `claude/<task-name>`, hoặc branch Claude đã có sẵn).
+  - **KHÔNG** chạy `gh pr create` hoặc tương đương để mở PR vào `main`.
+  - Để user tự review branch trên GitHub và tự quyết định có mở PR hay không.
+- Nếu cần tạo branch mới cho 1 task riêng, đặt tên theo format `claude/<mô-tả-ngắn>` và base từ `main` (hoặc branch user chỉ định).
+- Nếu user **explicitly** yêu cầu "tạo PR" thì mới được mở PR — mặc định không tự mở.
