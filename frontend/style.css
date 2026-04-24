@@ -1,0 +1,130 @@
+/* Container tổng */
+#rag-translator-wrapper {
+    position: absolute;
+    z-index: 2147483647;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* MỚI: Chống bôi đen nhầm nội dung trang web khi đang kéo thả Popup */
+    user-select: none; 
+}
+
+/* Nút bấm nổi ban đầu */
+.rag-action-btn {
+    background: #1a73e8;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.1s ease, background 0.2s;
+}
+
+.rag-action-btn:hover {
+    background: #1557b0;
+    transform: scale(1.05);
+}
+
+/* Hộp kết quả */
+.rag-result-box {
+    background: white;
+    border-radius: 12px;
+    width: 350px; /* Tăng từ 320px lên 350px để đọc đoạn văn sướng hơn */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    border: 1px solid #e0e0e0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: ragSlideUp 0.2s ease-out;
+}
+
+/* Header - Nơi cầm để kéo */
+.rag-header {
+    background: #f8f9fa;
+    padding: 10px 14px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* MỚI: Hiện con trỏ 4 hướng để người dùng biết là kéo được */
+    cursor: move; 
+}
+
+.rag-header span {
+    font-size: 11px;
+    color: #1a73e8; /* Đổi sang xanh cho chuyên nghiệp */
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Nội dung bản dịch */
+.rag-body {
+    padding: 15px;
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: #202124;
+    max-height: 300px; /* Tăng nhẹ chiều cao */
+    overflow-y: auto;
+    /* MỚI: Giữ nguyên xuống dòng và cấu trúc đoạn văn từ Gemini */
+    white-space: pre-wrap; 
+    word-break: break-word;
+}
+
+/* Footer & Nút Copy */
+.rag-footer {
+    padding: 8px 14px;
+    background: #f8f9fa;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.rag-copy-btn {
+    background: white;
+    border: 1px solid #dadce0;
+    color: #1a73e8;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.rag-copy-btn:hover {
+    background: #f1f3f4;
+}
+
+/* Trạng thái Loading */
+.rag-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 20px;
+    color: #5f6368;
+}
+
+.spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #1a73e8;
+    border-radius: 50%;
+    animation: rag-spin 0.8s linear infinite;
+}
+
+@keyframes rag-spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes ragSlideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
