@@ -1,4 +1,8 @@
 let ragContainer = null;
+let pageIngested = false;
+const MAX_CONTENT_CHARS = 10000;
+const MIN_ELEMENT_TEXT_LENGTH = 30;
+const MIN_CONTENT_LENGTH = 100;
 
 document.addEventListener("mouseup", (event) => {
     const selectedText = window.getSelection().toString().trim();
@@ -27,6 +31,24 @@ function createFloatingUI(x, y, text) {
     button.addEventListener("click", () => triggerTranslation(text));
 }
 
+function extractPageContent() {
+    const contentElements = document.querySelectorAll("p, h1, h2, h3, h4, h5, h6, span");
+    let cleanedText = "";
+
+    for (const element of contentElements) {
+        const text = element.innerText.trim();
+        if (text.length > MIN_ELEMENT_TEXT_LENGTH) {
+            cleanedText += text + " ";
+            if (cleanedText.length >= MAX_CONTENT_CHARS) {
+                cleanedText = cleanedText.slice(0, MAX_CONTENT_CHARS);
+                break;
+            }
+        }
+    }
+
+    return cleanedText;
+}
+
 async function triggerTranslation(text) {
     ragContainer.innerHTML = `
         <div class="rag-result-box">
@@ -44,6 +66,14 @@ async function triggerTranslation(text) {
     `;
     
     document.getElementById("rag-close-btn").onclick = destroyFloatingUI;
+
+    if (!pageIngested) {
+        const content = extractPageContent();
+        if (content.length > MIN_CONTENT_LENGTH) {
+            await sendDataToBackend(content);
+        }
+        pageIngested = true;
+    }
 
     chrome.runtime.sendMessage({
         type: "API_CALL",
@@ -100,35 +130,22 @@ document.addEventListener("mousedown", (event) => {
     }
 });
 
-window.addEventListener("load", () => {
-    const allParagraphs = document.querySelectorAll("p, h1, h2, h3, h4, h5, h6, span");
-    let cleanedText = "";
-
-    allParagraphs.forEach((element) => {
-        const text = element.innerText.trim();
-        if (text.length > 30) {
-            cleanedText += text + " ";
-        }
-    });
-
-    if (cleanedText.length > 100) {
-        sendDataToBackend(cleanedText);
-    }
-});
-
-async function sendDataToBackend(content) {
-    chrome.runtime.sendMessage({
-        type: "API_CALL",
-        url: "https://agentproject-backend-production.up.railway.app/api/v1/ingest",
-        data: {
-            url: window.location.href,
-            content: content
-        }
-    }, (response) => {
-        if (response && response.success) {
-            console.log("🚀 Đã nạp dữ liệu trang web:", response.data.message);
-        } else {
-            console.error("❌ Không thể nạp dữ liệu:", response ? response.error : "Unknown error");
-        }
+function sendDataToBackend(content) {
+    return new Promise((resolve) => {
+        chrome.runtime.sendMessage({
+            type: "API_CALL",
+            url: "https://agentproject-backend-production.up.railway.app/api/v1/ingest",
+            data: {
+                url: window.location.href,
+                content: content
+            }
+        }, (response) => {
+            if (response && response.success) {
+                console.log("🚀 Đã nạp dữ liệu trang web:", response.data.message);
+            } else {
+                console.error("❌ Không thể nạp dữ liệu:", response ? response.error : "Unknown error");
+            }
+            resolve();
+        });
     });
 }
