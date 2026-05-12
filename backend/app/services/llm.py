@@ -1,30 +1,66 @@
 import os
-import google.generativeai as genai
+from functools import lru_cache
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-2.5-flash')
+from dotenv import load_dotenv
+from openai import AsyncOpenAI
 
-async def get_gemini_translation(text: str, context: str):
+load_dotenv()
+
+
+def _require_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise RuntimeError(f"Missing required environment variable: {name}")
+    return value
+
+
+@lru_cache(maxsize=1)
+def _get_llm_client() -> AsyncOpenAI:
+    return AsyncOpenAI(
+        api_key=_require_env("LLM_API_KEY"),
+        base_url=_require_env("LLM_BASE_URL"),
+    )
+
+
+def _get_model_name() -> str:
+    return _require_env("LLM_MODEL")
+
+
+async def get_translation(text: str, context: str) -> str:
     prompt = f"""
-    Role: Expert Technical Translator specializing in Computer Science and Software Development.
-    Task: Translate the provided English text into natural, professional Vietnamese.
+    Role: Expert Technical Translator.
+    Task: Translate the following English text into natural Vietnamese.
 
-    INPUT DATA:
-    - Text to translate: "{text}"
-    - Reference Context (from RAG): 
+    Text to translate: "{text}"
+
+    Context from the article:
     ---
     {context}
     ---
 
-    STRICT REQUIREMENTS FOR SPRINT 4.2:
-    1. FORMATTING: You MUST preserve the EXACT paragraph structure, line breaks, and any list formatting (bullets/numbers) of the original text.
-    2. TERMINOLOGY: Use the provided "Reference Context" to ensure technical terms are translated accurately according to the article's theme.
-    3. TONE: The Vietnamese output should be natural, fluid, and suitable for a technical audience (avoiding overly literal or clunky translations).
-    4. OUTPUT: Return ONLY the raw translated text. No introductions, no markdown code blocks (```), and no post-translation explanations.
-
-    Translation:
+    Requirements:
+    1. Use appropriate technical terminology based on the context.
+    2. Ensure the translation is natural and professional.
+    3. Return ONLY the translated text, no explanations.
     """
-    
-    response = model.generate_content(prompt)
-    return response.text.strip()
+
+    response = await _get_llm_client().chat.completions.create(
+        model=_get_model_name(),
+        messages=[
+            {
+                "role": "system",
+                "content": "You are an expert technical translator from English to Vietnamese.",
+            },
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0.2,
+    )
+
+    if not response.choices:
+        raise RuntimeError("LLM provider returned no choices")
+
+    content = response.choices[0].message.content
+    if not content:
+        raise RuntimeError("LLM provider returned empty content")
+
+    return content.strip()

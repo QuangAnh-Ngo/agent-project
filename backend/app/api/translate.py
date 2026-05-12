@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from app.schemas.requests import IngestRequest, TranslateRequest
 from app.schemas.responses import TranslateResponse
 from app.services.rag import process_and_store_document, retrieve_relevant_context
-from app.services.llm import get_gemini_translation # Sẽ tạo ở Task 3.2
+from app.services.llm import get_translation
 
 router = APIRouter()
 
@@ -18,9 +18,8 @@ async def translate(request: TranslateRequest):
         # 1. Lấy ngữ cảnh liên quan từ Qdrant (Task 3.1)
         context = await retrieve_relevant_context(request.highlighted_text, request.url)
         
-        # 2. Gọi Gemini để dịch thuật thông minh (Task 3.2)
-
-        translation = await get_gemini_translation(request.highlighted_text, context)
+        # 2. Gọi LLM theo OpenAI SDK để dịch thuật thông minh
+        translation = await get_translation(request.highlighted_text, context)
         
         return TranslateResponse(
             status="success",
