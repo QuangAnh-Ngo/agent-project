@@ -115,6 +115,14 @@ async function triggerAction(text, type, question = "") {
     initDraggable(document.getElementById("rag-result-handle"), ragContainer);
     document.getElementById("rag-close-btn").onclick = destroyFloatingUI;
 
+    if (!pageIngested) {
+        const content = extractPageContent();
+        if (content.length > MIN_CONTENT_LENGTH) {
+            await sendDataToBackend(content);
+        }
+        pageIngested = true;
+    }
+
     chrome.runtime.sendMessage({
         type: "API_CALL",
         url: `http://localhost:8080/api/v1/${type}`,
