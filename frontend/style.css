@@ -1,20 +1,22 @@
+/* Container tổng - Đảm bảo luôn nằm trên cùng */
 #rag-translator-wrapper {
     position: absolute;
     z-index: 2147483647;
-    font-family: 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     user-select: none;
 }
 
-/* --- ACTION BAR (Pill UI) --- */
+/* --- ACTION BAR (Thanh công cụ Pill) --- */
 .rag-action-bar {
     display: flex;
     align-items: center;
     background: #ffffff;
     border-radius: 24px;
     padding: 6px 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.18);
     border: 1px solid #e0e0e0;
     gap: 8px;
+    cursor: move; /* Gợi ý người dùng có thể kéo thả */
     animation: ragSlideUp 0.2s ease-out;
 }
 
@@ -23,38 +25,99 @@
     border: none;
     padding: 6px 10px;
     border-radius: 16px;
-    cursor: pointer !important; /* Đảm bảo hiện bàn tay */
+    cursor: pointer !important;
     font-size: 13px;
     font-weight: 600;
     color: #3c4043;
     display: flex;
     align-items: center;
     gap: 5px;
+    transition: background 0.2s;
 }
 
 .rag-tool-btn:hover { background: #f1f3f4; }
-.rag-tool-btn.primary { color: #1a73e8; }
 
-/* --- RESULT BOX --- */
+.rag-divider {
+    width: 1px;
+    height: 18px;
+    background: #eee;
+    align-self: center;
+}
+
+.rag-close-mini {
+    cursor: pointer !important;
+    font-size: 14px;
+    color: #9aa0a6;
+    padding: 0 5px;
+    transition: color 0.2s;
+}
+.rag-close-mini:hover { color: #d93025; }
+
+/* --- ASK UI (Phần mở rộng khi đặt câu hỏi) --- */
+.rag-ask-input-container {
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 250px;
+}
+
+.rag-ask-field {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+    font-size: 13px;
+    box-sizing: border-box;
+}
+.rag-ask-field:focus { border-color: #1a73e8; }
+
+.rag-ask-footer {
+    display: flex; 
+    justify-content: flex-end; 
+    gap: 12px;
+    padding-right: 5px;
+}
+
+#rag-ask-cancel {
+    font-size: 12px;
+    color: #70757a;
+    cursor: pointer !important;
+    align-self: center;
+}
+#rag-ask-cancel:hover { text-decoration: underline; }
+
+#rag-send-ask {
+    font-size: 12px;
+    color: #1a73e8;
+    border: none;
+    background: none;
+    cursor: pointer !important;
+    font-weight: bold;
+}
+
+/* --- RESULT BOX (Hộp kết quả) --- */
 .rag-result-box {
     background: white;
     border-radius: 12px;
-    width: 360px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    width: 380px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
     border: 1px solid #e0e0e0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    animation: ragSlideUp 0.2s ease-out;
 }
 
 .rag-header {
     background: #f8f9fa;
-    padding: 10px 14px;
+    padding: 12px 14px;
     border-bottom: 1px solid #eee;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    cursor: move !important; /* Chỉ header mới có icon di chuyển */
+    cursor: move !important;
 }
 
 .rag-header span {
@@ -62,41 +125,137 @@
     color: #1a73e8;
     font-weight: bold;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .rag-close {
-    cursor: pointer !important; /* BUX FIX: Hiện bàn tay thay vì icon expand */
-    font-size: 18px;
+    cursor: pointer !important;
+    font-size: 20px;
     color: #9aa0a6;
-    padding: 0 5px;
     line-height: 1;
 }
+.rag-close:hover { color: #5f6368; }
 
 .rag-body {
-    padding: 15px;
-    font-size: 14.5px;
-    line-height: 1.6;
+    padding: 18px;
+    font-size: 15px;
+    line-height: 1.7;
     color: #202124;
-    max-height: 300px;
+    max-height: 350px;
     overflow-y: auto;
     white-space: pre-wrap;
     word-break: break-word;
 }
 
-/* --- ASK UI --- */
-.rag-ask-container { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
-.rag-ask-field {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
+/* --- INGEST TOAST (Task 4.5) --- */
+#rag-ingest-toast {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    background: #ffffff;
+    border-left: 5px solid #1a73e8;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
     border-radius: 8px;
-    outline: none;
-    font-size: 13px;
+    z-index: 2147483647;
+    width: 300px;
+    animation: ragSlideInRight 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
 }
 
-.rag-footer { padding: 8px 14px; background: #f8f9fa; border-top: 1px solid #eee; display: flex; justify-content: flex-end; }
-.rag-copy-btn { background: white; border: 1px solid #dadce0; color: #1a73e8; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer !important; }
+.rag-toast-content { padding: 16px; }
+.rag-toast-header { font-size: 14px; font-weight: 700; color: #1a73e8; margin-bottom: 6px; }
+.rag-toast-body { font-size: 12.5px; color: #3c4043; line-height: 1.5; }
 
-.spinner { width: 16px; height: 16px; border: 2px solid #f3f3f3; border-top: 2px solid #1a73e8; border-radius: 50%; animation: rag-spin 0.8s linear infinite; }
+.rag-toast-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 12px;
+}
+
+.rag-toast-btn-link {
+    background: none; border: none; color: #70757a; font-size: 12px; cursor: pointer !important;
+}
+.rag-toast-btn-link:hover { text-decoration: underline; }
+
+.rag-toast-btn-main {
+    background: #1a73e8; color: white; border: none; padding: 6px 12px; border-radius: 6px;
+    font-size: 12px; font-weight: 600; cursor: pointer !important; transition: background 0.2s;
+}
+.rag-toast-btn-main:hover { background: #1557b0; }
+
+/* --- FOOTER & LOADING --- */
+.rag-footer { padding: 10px 14px; background: #f8f9fa; border-top: 1px solid #eee; display: flex; justify-content: flex-end; }
+.rag-copy-btn { background: white; border: 1px solid #dadce0; color: #1a73e8; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer !important; }
+.rag-copy-btn:hover { background: #f8f9fa; border-color: #1a73e8; }
+
+.rag-loading { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 30px; color: #5f6368; font-size: 13px; }
+.spinner { width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #1a73e8; border-radius: 50%; animation: rag-spin 0.8s linear infinite; }
+
+/* --- ANIMATIONS --- */
 @keyframes rag-spin { to { transform: rotate(360deg); } }
-@keyframes ragSlideUp { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes ragSlideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes ragSlideInRight { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
+
+/* TRONG FILE style.css - Bổ sung vào cuối file */
+
+/* --- 1. Tinh chỉnh nút Tắt trên Action Bar --- */
+.rag-btn-off {
+    color: #70757a !important; /* Màu xám để "trá hình", ít nổi bật hơn */
+    font-weight: 500 !important;
+}
+.rag-btn-off:hover {
+    color: #d93025 !important; /* Hiện màu đỏ khi hover để cảnh báo */
+    background: #fce8e6 !important;
+}
+
+/* --- 2. Giao diện Mini-Popup "Hồi sinh" (Ghost UI) --- */
+#rag-ghost-dock {
+    position: fixed;
+    bottom: 15px; /* Nằm sát đáy */
+    right: 15px; /* Nằm góc phải (đồng bộ vị trí với Toast 4.5) */
+    background: #ffffff;
+    border-radius: 20px; /* Dạng viên thuốc mỏng */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12); /* Đổ bóng nhẹ hơn Result Box */
+    border: 1px solid #eee;
+    z-index: 2147483647; /* Luôn trên cùng */
+    animation: ragSlideInUp 0.3s ease-out; /* Hiệu ứng trượt từ dưới lên */
+    user-select: none;
+}
+
+.rag-ghost-content {
+    display: flex;
+    align-items: center;
+    padding: 8px 15px;
+    gap: 10px;
+}
+
+.rag-ghost-icon {
+    font-size: 14px;
+}
+
+.rag-ghost-text {
+    font-size: 12px;
+    color: #5f6368; /* Màu chữ nhẹ nhàng */
+    font-family: 'Segoe UI', Roboto, sans-serif;
+}
+
+.rag-ghost-btn-reactivate {
+    background: #e8f0fe; /* Màu xanh nhạt của Google */
+    border: none;
+    color: #1a73e8; /* Màu xanh chính */
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer !important;
+    transition: background 0.2s;
+}
+.rag-ghost-btn-reactivate:hover {
+    background: #d2e3fc;
+}
+
+/* Hiệu ứng trượt từ dưới lên cho Mini-Popup */
+@keyframes ragSlideInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
